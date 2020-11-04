@@ -210,6 +210,10 @@ const ClapTotal = () => {
   );
 };
 
+MediumClap.Icon = ClapIcon;
+MediumClap.Count = ClapCount;
+MediumClap.Total = ClapTotal;
+
 /**
  * Usage
  */
@@ -217,9 +221,9 @@ const ClapTotal = () => {
 const Usage = () => {
   return (
     <MediumClap>
-      <ClapIcon />
-      <ClapCount />
-      <ClapTotal />
+      <MediumClap.Icon />
+      <MediumClap.Count />
+      <MediumClap.Total />
     </MediumClap>
   );
 };
