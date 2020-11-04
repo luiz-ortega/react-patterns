@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, Component } from "react";
+import mojs from "mo-js";
 
 import styles from "./index.css";
+import mo from "mo-js";
 
 const initalState = {
   count: 0,
@@ -8,12 +10,51 @@ const initalState = {
   isClicked: false,
 };
 
-const MediumClap = () => {
+/**
+ * Higher Order Component
+ */
+
+const withClapAnimation = (WrappedComponent) => {
+  class WithClapAnimation extends Component {
+    animationTimeline = new mojs.Timeline();
+    state = {
+      animationTimeline: this.animationTimeline,
+    };
+
+    componentDidMount() {
+      const scaleButton = new mojs.Html({
+        el: "#clap",
+        duration: 300,
+        scale: { 1.3: 1 },
+        easing: mojs.easing.ease.out,
+      });
+
+      const newAnimationTimeline = this.animationTimeline.add([scaleButton]);
+      this.setState({
+        animationTimeline: newAnimationTimeline,
+      });
+    }
+
+    render() {
+      return (
+        <WrappedComponent
+          {...this.props}
+          animateTimeline={this.state.animationTimeline}
+        />
+      );
+    }
+  }
+
+  return WithClapAnimation;
+};
+
+const MediumClap = ({ animateTimeline }) => {
   const MAXIMUM_USER_CLAP = 12;
   const [clapState, setClapState] = useState(initalState);
   const { count, countTotal, isClicked } = clapState;
 
   const handleCLapClick = () => {
+    animateTimeline.replay();
     setClapState((prevState) => ({
       isClicked: true,
       count: Math.min(count + 1, MAXIMUM_USER_CLAP),
@@ -25,7 +66,7 @@ const MediumClap = () => {
   };
 
   return (
-    <button className={styles.clap} onClick={handleCLapClick}>
+    <button id="clap" className={styles.clap} onClick={handleCLapClick}>
       <ClapIcon isClicked={isClicked} />
       <ClapCount count={count} />
       <ClapTotal countTotal={countTotal} />
@@ -61,4 +102,13 @@ const ClapTotal = ({ countTotal }) => {
   return <span className={styles.total}>{countTotal}</span>;
 };
 
-export default MediumClap;
+/**
+ * Usage
+ */
+
+const Usage = () => {
+  const AnimatedMediumClap = withClapAnimation(MediumClap);
+  return <AnimatedMediumClap />;
+};
+
+export default Usage;
