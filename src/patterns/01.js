@@ -22,16 +22,29 @@ const withClapAnimation = (WrappedComponent) => {
     };
 
     componentDidMount() {
+      const tlDurantion = 300;
+
       const scaleButton = new mojs.Html({
         el: "#clap",
-        duration: 300,
+        duration: tlDurantion,
         scale: { 1.3: 1 },
         easing: mojs.easing.ease.out,
       });
 
+      const countTotalAnimation = new mojs.Html({
+        el: "#clapCountTotal",
+        opacity: { 0: 1 },
+        delay: (3 * tlDurantion) / 2,
+        duration: tlDurantion,
+        y: { 0: -3 },
+      });
+
       const clap = document.getElementById("clap");
       clap.style.transform = "scale(1,1)";
-      const newAnimationTimeline = this.animationTimeline.add([scaleButton]);
+      const newAnimationTimeline = this.animationTimeline.add([
+        scaleButton,
+        countTotalAnimation,
+      ]);
       this.setState({
         animationTimeline: newAnimationTimeline,
       });
@@ -101,7 +114,11 @@ const ClapCount = ({ count }) => {
 };
 
 const ClapTotal = ({ countTotal }) => {
-  return <span className={styles.total}>{countTotal}</span>;
+  return (
+    <span id="clapCountTotal" className={styles.total}>
+      {countTotal}
+    </span>
+  );
 };
 
 /**
