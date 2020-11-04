@@ -7,6 +7,7 @@ import React, {
   createContext,
   useContext,
   useMemo,
+  useRef,
 } from "react";
 import mojs from "mo-js";
 
@@ -137,8 +138,16 @@ const MediumClap = ({ children, onClap }) => {
     clapTotalEl: clapTotalRef,
   });
 
+  const componentJustMounted = useRef(true);
+
   useEffect(() => {
-    onClap && onClap(clapState);
+    // onClap && onClap(clapState);
+    // console.log("onClap was called");
+    if (!componentJustMounted.current) {
+      console.log("onClap was called");
+      onClap && onClap(clapState);
+    }
+    componentJustMounted.current = false;
   }, [count]);
 
   const handleCLapClick = () => {
@@ -235,7 +244,9 @@ const Usage = () => {
         <MediumClap.Count />
         <MediumClap.Total />
       </MediumClap>
-      <div className={styles.info}>{`You have clapped ${count}`}</div>
+      {!!count && (
+        <div className={styles.info}>{`You have clapped ${count} times`}</div>
+      )}
     </div>
   );
 };
