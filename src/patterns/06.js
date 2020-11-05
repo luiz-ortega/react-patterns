@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
   useLayoutEffect,
+  useRef,
 } from "react";
 import mojs from "mo-js";
 
@@ -148,28 +149,43 @@ const useClapState = (initialState = INITIAL_STATE) => {
   return [clapState, updateClapState];
 };
 
+/**
+ * custom useEffectAfterMount hook
+ */
+
+const useEffectAfterMount = (cb, deps) => {
+  const componentJustMounted = useRef(true);
+
+  useEffect(() => {
+    if (!componentJustMounted.current) {
+      console.log("evoked");
+      return cb();
+    }
+    componentJustMounted.current = false;
+  }, deps);
+};
+
 const MediumClap = () => {
   const [clapState, updateClapState] = useClapState();
   const { count, countTotal, isClicked } = clapState;
   const [{ clapRef, clapCountRef, clapTotalRef }, setRef] = useDOMRef();
 
-  const animateTimeline = useClapAnimation({
+  const animationTimeline = useClapAnimation({
     clapEl: clapRef,
     countEl: clapCountRef,
     clapTotalEl: clapTotalRef,
   });
 
-  const handleCLapClick = () => {
-    animateTimeline.replay();
-    updateClapState();
-  };
+  useEffectAfterMount(() => {
+    animationTimeline.replay();
+  }, [count]);
 
   return (
     <button
       ref={setRef}
       data-refkey="clapRef"
       className={styles.clap}
-      onClick={handleCLapClick}
+      onClick={updateClapState}
     >
       <ClapIcon isClicked={isClicked} />
       <ClapCount count={count} setRef={setRef} />
