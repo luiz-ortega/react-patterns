@@ -146,7 +146,19 @@ const useClapState = (initialState = INITIAL_STATE) => {
     }));
   }, [count, countTotal]);
 
-  return [clapState, updateClapState];
+  const togglerProps = {
+    onClick: updateClapState,
+    "aria-pressed": clapState.isClicked,
+  };
+
+  const counterProps = {
+    count,
+    "aria-valuemax": MAXIMUM_USER_CLAP,
+    "aria-valuemin": 0,
+    "aria-valuenow": count,
+  };
+
+  return { clapState, updateClapState, togglerProps, counterProps };
 };
 
 /**
@@ -164,8 +176,6 @@ const useEffectAfterMount = (cb, deps) => {
     componentJustMounted.current = false;
   }, deps);
 };
-
-const MediumClap = () => {};
 
 /**
  * subcomponents
@@ -222,7 +232,12 @@ const ClapTotal = ({ countTotal, setRef, ...restProps }) => {
  */
 
 const Usage = () => {
-  const [clapState, updateClapState] = useClapState();
+  const {
+    clapState,
+    updateClapState,
+    togglerProps,
+    counterProps,
+  } = useClapState();
   const { count, countTotal, isClicked } = clapState;
   const [{ clapRef, clapCountRef, clapTotalRef }, setRef] = useDOMRef();
 
@@ -237,13 +252,9 @@ const Usage = () => {
   }, [count]);
 
   return (
-    <ClapContainer
-      setRef={setRef}
-      onClick={updateClapState}
-      data-refkey="clapRef"
-    >
+    <ClapContainer setRef={setRef} data-refkey="clapRef" {...togglerProps}>
       <ClapIcon isClicked={isClicked} />
-      <ClapCount count={count} setRef={setRef} data-refkey="clapCountRef" />
+      <ClapCount setRef={setRef} data-refkey="clapCountRef" {...counterProps} />
       <ClapTotal
         countTotal={countTotal}
         setRef={setRef}
