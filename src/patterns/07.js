@@ -130,6 +130,10 @@ const useDOMRef = () => {
   return [DOMRef, setRef];
 };
 
+const callFnInSequence = (...fns) => (...args) => {
+  fns.forEach((fn) => fn && fn(...args));
+};
+
 /**
  * custom hook for ClapState
  */
@@ -146,19 +150,21 @@ const useClapState = (initialState = INITIAL_STATE) => {
     }));
   }, [count, countTotal]);
 
-  const togglerProps = {
-    onClick: updateClapState,
+  const getTogglerProps = ({ onClick, ...otherProps } = {}) => ({
+    onClick: callFnInSequence(updateClapState, onClick),
     "aria-pressed": clapState.isClicked,
-  };
+    ...otherProps,
+  });
 
-  const counterProps = {
+  const getCounterProps = ({ ...otherProps }) => ({
     count,
     "aria-valuemax": MAXIMUM_USER_CLAP,
     "aria-valuemin": 0,
     "aria-valuenow": count,
-  };
+    ...otherProps,
+  });
 
-  return { clapState, updateClapState, togglerProps, counterProps };
+  return { clapState, updateClapState, getTogglerProps, getCounterProps };
 };
 
 /**
@@ -235,8 +241,8 @@ const Usage = () => {
   const {
     clapState,
     updateClapState,
-    togglerProps,
-    counterProps,
+    getTogglerProps,
+    getCounterProps,
   } = useClapState();
   const { count, countTotal, isClicked } = clapState;
   const [{ clapRef, clapCountRef, clapTotalRef }, setRef] = useDOMRef();
@@ -251,10 +257,25 @@ const Usage = () => {
     animationTimeline.replay();
   }, [count]);
 
+  const handleClick = () => {
+    console.log("clicked!!!");
+  };
+
   return (
-    <ClapContainer setRef={setRef} data-refkey="clapRef" {...togglerProps}>
+    <ClapContainer
+      setRef={setRef}
+      data-refkey="clapRef"
+      {...getTogglerProps({
+        onClick: handleClick,
+        "aria-pressed": false,
+      })}
+    >
       <ClapIcon isClicked={isClicked} />
-      <ClapCount setRef={setRef} data-refkey="clapCountRef" {...counterProps} />
+      <ClapCount
+        setRef={setRef}
+        data-refkey="clapCountRef"
+        {...getCounterProps()}
+      />
       <ClapTotal
         countTotal={countTotal}
         setRef={setRef}
