@@ -135,6 +135,21 @@ const callFnInSequence = (...fns) => (...args) => {
 };
 
 /**
+ *  Cutom hook for getting previou prop/state
+ *
+ */
+
+const usePrevious = (value) => {
+  const ref = useRef();
+
+  useEffect(() => {
+    ref.current = value;
+  });
+
+  return ref.current;
+};
+
+/**
  * custom hook for ClapState
  */
 const useClapState = (initialState = INITIAL_STATE) => {
@@ -142,6 +157,15 @@ const useClapState = (initialState = INITIAL_STATE) => {
   const userInitialState = useRef(initialState);
   const [clapState, setClapState] = useState(initialState);
   const { count, countTotal } = clapState;
+
+  const resetRef = useRef(0);
+  const prevCount = usePrevious(count);
+  const reset = useCallback(() => {
+    if (prevCount !== count) {
+      setClapState(userInitialState.current);
+      resetRef.current++;
+    }
+  }, [prevCount, count, setClapState]);
 
   const updateClapState = useCallback(() => {
     setClapState(({ count, countTotal }) => ({
@@ -165,16 +189,13 @@ const useClapState = (initialState = INITIAL_STATE) => {
     ...otherProps,
   });
 
-  const reset = useCallback(() => {
-    setClapState(userInitialState.current);
-  }, [setClapState]);
-
   return {
     clapState,
     updateClapState,
     getTogglerProps,
     getCounterProps,
     reset,
+    resetDep: resetRef.current,
   };
 };
 
@@ -255,9 +276,13 @@ const useInitialState = {
 };
 
 const Usage = () => {
-  const { clapState, getTogglerProps, getCounterProps, reset } = useClapState(
-    useInitialState
-  );
+  const {
+    clapState,
+    getTogglerProps,
+    getCounterProps,
+    reset,
+    resetDep,
+  } = useClapState(useInitialState);
   const { count, countTotal, isClicked } = clapState;
   const [{ clapRef, clapCountRef, clapTotalRef }, setRef] = useDOMRef();
 
@@ -270,6 +295,17 @@ const Usage = () => {
   useEffectAfterMount(() => {
     animationTimeline.replay();
   }, [count]);
+
+  const [uploadingReset, setUpload] = useState(false);
+  useEffectAfterMount(() => {
+    setUpload(true);
+
+    const id = setTimeout(() => {
+      setUpload(false);
+    }, 3000);
+
+    return () => clearTimeout(id);
+  }, [resetDep]);
 
   const handleClick = () => {
     console.log("clicked!!!");
@@ -303,6 +339,9 @@ const Usage = () => {
         </button>
         <pre className={userStyles.resetMsg}>
           {JSON.stringify({ count, countTotal, isClicked })}
+        </pre>
+        <pre className={userStyles.resetMsg}>
+          {uploadingReset ? `uploading reset ${resetDep} ...` : ""}
         </pre>
       </section>
     </div>
