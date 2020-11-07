@@ -284,7 +284,7 @@ const Usage = () => {
   ] = useDOMRef();
 
   const animationTimeline = useClapAnimation({
-    duration: 300,
+    duration: 1000,
     bounceEl: clapCountRef,
     fadeEl: countTotalRef,
     burstEl: clapContainerRef,
@@ -300,7 +300,8 @@ const Usage = () => {
       data-refkey="clapContainerRef"
       {...togglerProps}
     >
-      <ClapIcon isClicked={isClicked} />
+      {/* <ClapIcon isClicked={isClicked} /> */}
+      CLICKME
       <ClapCount ref={setRef} data-refkey="clapCountRef" {...counterProps} />
       <CountTotal
         ref={setRef}
